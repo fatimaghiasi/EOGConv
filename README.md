@@ -3,7 +3,8 @@
 Most GNN architectures assume node features are the primary carriers of information, with edges serving as optional context.  
 EOGConv flips that assumption: it performs message passing entirely based on **edge features**, making it suitable for any graph structure where edges encode relationships, interactions, or signals that dominate the learning task.
 Many real-world graphs can naturally encode information in edges:
-- **Chemical graphs:** resonance, bond types, and electronic features 
+- **Chemical graphs:** resonance, bond types, and electronic features
+- **Electrical circuits:** component types, resistances, capacitatances, and inductances  
 - **Transportation networks:** connections encode distances, speeds, flows  
 - **Any scenario where nodes are blank placeholders, but edges carry structure**
 
