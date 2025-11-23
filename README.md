@@ -48,13 +48,10 @@ It is required whwn passing batched inputs.
 
 **How to use in a custom pytorch model**
 Define it in  "__init__(self)":
-self.conv1 = EOGConv(, 16, aggr, directed=False, symmetric=True)
-
-
-
-
-
-
+"self.conv1=EOGConv(in_channels, out_channels, aggr, directed, symmetric)"
+In forward, have the following line:
+"edge_x=F.relu(self.conv1(edge_x, edge_index))"
+The new edge_x can now go through more convolutional layers or other types of layers.
 
 **How to Cite**
 If you use this layer in academic work, please cite the repository:
