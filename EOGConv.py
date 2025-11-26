@@ -159,14 +159,28 @@ class EOGConv(nn.Module):
             W_left = self.W_left
             W_right = self.W_right
 
+                # ----------------------------------------
+        # 4) Linear transforms + combine (per endpoint, simple 2-end model)
         # ----------------------------------------
-        # 4) Linear transforms + combine
-        # ----------------------------------------
-        left_msg = left_sum @ W_left.t()        # [E, C_out]
-        right_msg = right_sum @ W_right.t()     # [E, C_out]
 
-        self_feat = torch.cat([x_src, x_dst], dim=-1)  # [E, 2*C_end]
-        self_msg = self_feat @ self.W_self.t()         # [E, C_out]
+        # left_msg applies to src first, then dst
+        left_src  = left_sum @ W_left.t()   # [E, C_out]
+        left_dst  = left_sum @ W_left.t()   # using same weights (symmetric)
+        left_msg  = torch.stack([left_src, left_dst], dim=1)   # [E, 2, C_out]
 
-        x_new = left_msg + self_msg + right_msg
+        # right_msg applies to dst first, then src (mirror)
+        right_dst = right_sum @ W_right.t()  # [E, C_out]
+        right_src = right_sum @ W_right.t()
+        right_msg_raw = torch.stack([right_src, right_dst], dim=1)  # [E, 2, C_out]
+
+        # flip right-side so it mirrors the left's indexing
+        right_msg = right_msg_raw.flip(dims=[1])   # swap src/dst contributions
+
+        # self message: simple per-end duplication
+        self_src = (torch.cat([x_src, x_dst], -1) @ self.W_self.t())   # [E, C_out]
+        self_dst = (torch.cat([x_dst, x_src], -1) @ self.W_self.t())   # [E, C_out]
+        self_msg = torch.stack([self_src, self_dst], dim=1)            # [E, 2, C_out]
+
+        # combine all messages
+        x_new = left_msg + self_msg + right_msg    # [E, 2, C_out]
         return x_new
